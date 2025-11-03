@@ -37,9 +37,9 @@ tokenizer = BertTokenizer.from_pretrained("bert-base-cased")
 def tokenize_function(batch):
     return tokenizer(batch["text"], padding="max_length", truncation=True, max_length=512)
 
-train_ds = train_ds.map(tokenize_function, batched=True, num_proc=4)
-val_ds = val_ds.map(tokenize_function, batched=True, num_proc=4)
-test_ds = test_ds.map(tokenize_function, batched=True, num_proc=4) #num_proc=4 parallel processing
+train_ds = train_ds.map(tokenize_function, batched=True, num_proc=8)
+val_ds = val_ds.map(tokenize_function, batched=True, num_proc=8)
+test_ds = test_ds.map(tokenize_function, batched=True, num_proc=8) #num_proc=4 parallel processing
 
 train_ds.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
 val_ds.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
@@ -79,8 +79,7 @@ trainer = Trainer(
     train_dataset=train_ds,
     eval_dataset=val_ds,
     tokenizer=tokenizer,
-    compute_metrics=compute_metrics,
-    dataloader_num_workers=8
+    compute_metrics=compute_metrics
 )
 
 

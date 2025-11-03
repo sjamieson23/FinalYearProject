@@ -80,6 +80,7 @@ trainer = Trainer(
     eval_dataset=val_ds,
     tokenizer=tokenizer,
     compute_metrics=compute_metrics,
+    dataloader_num_workers=8
 )
 
 
@@ -108,7 +109,7 @@ def terminateVM():
     service = discovery.build('compute', 'v1')
 
     project = 'final-year-project-477110'
-    zone = 'us-central1-a'
+    zone = 'us-west1-a'
     instance_name = 'single-agent-training'
 
     request = service.instances().stop(project=project, zone=zone, instance=instance_name)

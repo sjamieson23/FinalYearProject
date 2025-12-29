@@ -1,5 +1,6 @@
 import os
 
+import joblib
 import pandas as pd
 from dateutil.utils import today
 from google.cloud import storage
@@ -21,7 +22,7 @@ test_df["label"] = test_df["label"].astype(int)
 def combine_text(row):
     subj = str(row["subject"]) if not pd.isna(row["subject"]) else ""
     body = str(row["body"]) if not pd.isna(row["body"]) else ""
-    return subj.strip() + " [SEP] " + body.strip()
+    return subj.strip() + body.strip()
 
 
 train_df["text"] = train_df.apply(combine_text, axis=1)
@@ -44,7 +45,7 @@ def main():
         ngram_range=(1, 2),  # Use unigrams and bigrams; adds some phrase-level info
         min_df=2,  # Ignore terms that appear in only 1 document (very rare)
         max_df=0.9,  # Ignore extremely common terms (appear in >90% of docs)
-        max_features=50000  # Optional cap on vocabulary size for efficiency
+        max_features=100000  # Optional cap on vocabulary size for efficiency
     )
     X_train_tfidf = tfidf.fit_transform(X_train)
     # Use the fitted TF-IDF to transform validation and test text
@@ -58,6 +59,7 @@ def main():
     best_f1 = -1.0
     best_C = None
     best_model = None
+    best_tfidf = None
 
     for params in ParameterGrid(param_grid):
         C = params["C"]
@@ -81,6 +83,7 @@ def main():
             best_f1 = f1
             best_C = C
             best_model = model
+            best_tfidf = tfidf
 
     print(f"\nBest C based on validation F1: {best_C}, F1={best_f1:.4f}")
     # Get class probabilities on the test set
@@ -93,7 +96,10 @@ def main():
     for k, v in metrics.items():
         print(f"{k}: {v:.4f}")
 
-    results_file = os.path.join("Results/TFIDFBodyAndSubjectLR", "MetricsAndValues.txt")
+    results_dir = "Results/TFIDFBodyAndSubjectLR"
+    os.makedirs(results_dir, exist_ok=True)
+    
+    results_file = os.path.join(results_dir, "MetricsAndValues.txt")
 
     # Write metrics and best C to the file
     with open(results_file, "w") as f:
@@ -102,14 +108,25 @@ def main():
         for k, v in metrics.items():
             f.write(f"{k}: {v:.4f}\n")
     print(f"\nMetrics written to: {results_file}")
+    
+    # Save the trained model and vectorizer
+    model_file = os.path.join(results_dir, "tfidf_lr_model.joblib")
+    vectorizer_file = os.path.join(results_dir, "tfidf_vectorizer.joblib")
+    
+    joblib.dump(best_model, model_file)
+    joblib.dump(best_tfidf, vectorizer_file)
+    print(f"\nModel saved to: {model_file}")
+    print(f"Vectorizer saved to: {vectorizer_file}")
 
 if __name__ == "__main__":
     try:
         main()
-        uploadDataToBucket("Results/TFIDFBodyAndSubjectLR/MetricsAndValues.txt")
+        # Upload metrics, model, and vectorizer to bucket
+        uploadDataToBucket("Results/TFIDFBodyAndSubjectLR")
     except Exception as e:
         print(e)
-        uploadDataToBucket("Results/TFIDFBodyAndSubjectLR/MetricsAndValues.txt")
+        # Try to upload even if there was an error
+        uploadDataToBucket("Results/TFIDFBodyAndSubjectLR")
 
     client = storage.Client()
     bucket = client.get_bucket("model-storage-data")

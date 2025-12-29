@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from datasets import Dataset
 from dateutil.utils import today
@@ -74,6 +75,10 @@ trainer = Trainer(
 
 
 def main():
+    # Ensure directories exist before saving
+    os.makedirs("Results/Saves/BertSubj/model", exist_ok=True)
+    os.makedirs("Results/Saves/BertSubj/tokenizer", exist_ok=True)
+    
     trainer.train()
 
     metrics = trainer.evaluate(test_ds)
@@ -86,16 +91,27 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+        # Upload training results
         uploadDataToBucket("Logs/BertSubj/logs_bert_base_cased_3_epochs")
         uploadDataToBucket("Results/Saves/BertSubj")
+        uploadDataToBucket("Results/BertSubj/results_bert_base_cased_3_epochs")
+        
+        # Upload the script file for reference
+        script_path = "SingleAgent/bert_subj.py"
+        if os.path.exists(script_path):
+            client = storage.Client()
+            bucket = client.get_bucket("model-storage-data")
+            folder_name = today().strftime("%Y-%m-%d") + "_test1"
+            blob = bucket.blob(f"{folder_name}/{script_path}")
+            blob.upload_from_filename(script_path)
     except Exception as e:
-        print(e)
-        uploadDataToBucket("Results/Saves/BertSubj")
-        uploadDataToBucket("Logs/BertSubj/logs_bert_base_cased_3_epochs")
-
-    client = storage.Client()
-    bucket = client.get_bucket("model-storage-data")
-    folder_name = today().strftime("%Y-%m-%d") + "_test1"
-    blob = bucket.blob(folder_name)
-    blob.upload_from_filename("bert_subj.py")
-    terminateVM()
+        print(f"Error during training or upload: {e}")
+        # Try to upload what we have even if training failed
+        try:
+            uploadDataToBucket("Results/Saves/BertSubj")
+            uploadDataToBucket("Logs/BertSubj/logs_bert_base_cased_3_epochs")
+            uploadDataToBucket("Results/BertSubj/results_bert_base_cased_3_epochs")
+        except Exception as upload_error:
+            print(f"Error during upload: {upload_error}")
+    finally:
+        terminateVM()

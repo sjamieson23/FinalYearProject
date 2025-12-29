@@ -137,6 +137,8 @@ celerybeat.pid
 # Environments
 .env
 .envrc
+*/.venv/
+*/.venv
 .venv
 env/
 venv/
@@ -208,3 +210,7 @@ __marimo__/
 
 #IDE
 */.idea/
+
+
+#Sean done
+*/.csv

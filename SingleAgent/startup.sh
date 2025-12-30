@@ -1,6 +1,7 @@
 #!/bin/bash
-# VM Startup Script for Training All Agents
-# This script runs on VM startup, trains all models efficiently, uploads results, and shuts down
+# VM Startup Script - Environment Setup Only
+# This script runs on VM startup to set up the environment for training
+# Training is started manually via run_training.sh
 
 set -e  # Exit on error
 set -o pipefail  # Exit on pipe failure
@@ -202,187 +203,44 @@ pip install --no-cache-dir --timeout=300 joblib gensim || {
 echo "[$(date)] Environment setup complete!"
 
 # ============================================================================
-# PHASE 4: Training Orchestration
+# PHASE 4: Training Preparation (Manual Training)
 # ============================================================================
-echo "[$(date)] Phase 4: Starting training pipeline..."
+echo "[$(date)] Phase 4: Environment setup complete. Ready for manual training."
 echo "[$(date)] Training Run ID: $RUN_ID"
-echo "[$(date)] This session will train 10 separate single agent systems:"
+echo "[$(date)] To train all 10 models, run manually:"
+echo "  cd /home/$USER/FinalYearProject/SingleAgent"
+echo "  bash run_training.sh"
+echo ""
+echo "[$(date)] Models to be trained:"
 echo "  GPU Models (3): BERT Body, BERT Subject, BERT Body+Subject"
 echo "  CPU Models (7): TF-IDF LR, TF-IDF NB, TF-IDF DT, TF-IDF RF, TF-IDF MLP, Word2Vec MLP, Word2Vec RF"
 echo "[$(date)] Each model will be stored in a unique GCS location to prevent data loss"
 echo "[$(date)] Real-time logs available at: $REALTIME_LOG"
 
-# Track training status
-TRAINING_ERRORS=0
-TRAINING_LOG="/home/$USER/training_status_${RUN_ID}.log"
+# Change to SingleAgent directory where run_training.sh is located
+# run_training.sh is triggered from: /home/$USER/FinalYearProject/SingleAgent
+cd /home/$USER/FinalYearProject/SingleAgent
 
-# Function to run a training script and log results
-run_training() {
-    local script_name=$1
-    local script_path=$2
-    local description=$3
-    
-    echo "[$(date)] ========================================"
-    echo "[$(date)] Starting: $description"
-    echo "[$(date)] Script: $script_path"
-    echo "[$(date)] Run ID: $RUN_ID"
-    echo "[$(date)] ========================================"
-    
-    # Ensure we're in the SingleAgent directory and PYTHONPATH is set
-    cd /home/$USER/FinalYearProject/SingleAgent
-    export PYTHONPATH="/home/$USER/FinalYearProject:${PYTHONPATH}"
-    
-    # Run training with timeout protection and simple logging
-    # Timeout prevents indefinite hangs (24 hours max per model - very generous)
-    # Simple tee logging - proven and reliable
-    # PYTHONUNBUFFERED=1 (set above) ensures Python outputs immediately
-    if command -v timeout >/dev/null 2>&1; then
-        # Use timeout if available (should be on Ubuntu)
-        if timeout 86400 python3 "$script_path" 2>&1 | tee -a "$TRAINING_LOG" "$REALTIME_LOG" 2>/dev/null || python3 "$script_path" >> "$TRAINING_LOG" 2>&1; then
-            echo "[$(date)] ✅ SUCCESS: $description"
-            echo "[$(date)] Model saved to unique GCS location"
-            return 0
-        else
-            echo "[$(date)] ❌ FAILED: $description (check $TRAINING_LOG for details)"
-            TRAINING_ERRORS=$((TRAINING_ERRORS + 1))
-            return 1
-        fi
-    else
-        # Fallback if timeout not available (shouldn't happen on Ubuntu)
-        if python3 "$script_path" 2>&1 | tee -a "$TRAINING_LOG" "$REALTIME_LOG" 2>/dev/null || python3 "$script_path" >> "$TRAINING_LOG" 2>&1; then
-            echo "[$(date)] ✅ SUCCESS: $description"
-            echo "[$(date)] Model saved to unique GCS location"
-            return 0
-        else
-            echo "[$(date)] ❌ FAILED: $description (check $TRAINING_LOG for details)"
-            TRAINING_ERRORS=$((TRAINING_ERRORS + 1))
-            return 1
-        fi
-    fi
-}
+# Make run_training.sh executable
+chmod +x run_training.sh
 
-# GPU-INTENSIVE MODELS (Run sequentially to avoid GPU memory conflicts)
-# These require the NVIDIA L4 GPU and should run one at a time
-echo "[$(date)] === Training GPU Models (Sequential) ==="
-
-run_training "bert_body" "bert_body.py" "BERT Body Model"
-run_training "bert_subj" "bert_subj.py" "BERT Subject Model"
-run_training "bert_body_and_subj" "bert_body_and_subj.py" "BERT Body and Subject Model"
-
-# CPU-BASED MODELS (Can run in parallel, but limited by memory)
-# Running sequentially to avoid memory issues with 16GB RAM
-# If you have more RAM, you could run 2-3 in parallel
-echo "[$(date)] === Training CPU Models (Sequential for memory safety) ==="
-
-run_training "tf_idf_lr" "tf_idf_lr.py" "TF-IDF Logistic Regression"
-run_training "tf_idf_nb" "tf_idf_nb.py" "TF-IDF Naive Bayes"
-run_training "tf_idf_dt" "tf_idf_dt.py" "TF-IDF Decision Tree"
-run_training "tf_idf_rf" "tf_idf_rf.py" "TF-IDF Random Forest"
-run_training "tf_idf_mlp" "tf_idf_mlp.py" "TF-IDF Multi-Layer Perceptron"
-run_training "word2vec_mlp" "word2vec_mlp.py" "Word2Vec Multi-Layer Perceptron"
-run_training "word2vec_rf" "word2vec_rf.py" "Word2Vec Random Forest"
-
-# Optional: Run pretrained evaluation if needed
-# run_training "pretrained" "pretrained.py" "Pretrained Model Evaluation"
-
-echo "[$(date)] === Training Pipeline Complete ==="
-echo "[$(date)] Total models trained: 10"
-echo "[$(date)] Successful: $((10 - TRAINING_ERRORS))"
-echo "[$(date)] Failed: $TRAINING_ERRORS"
+echo "[$(date)] ========================================"
+echo "[$(date)] Setup Complete: $(date)"
+echo "[$(date)] Environment is ready for training"
 echo "[$(date)] Run ID: $RUN_ID"
+echo "[$(date)] ========================================"
+echo ""
+echo "To start training, SSH into the VM and run:"
+echo "  cd /home/$USER/FinalYearProject/SingleAgent"
+echo "  bash run_training.sh"
+echo ""
+echo "Monitor progress with:"
+echo "  tail -f $REALTIME_LOG"
+echo ""
 
-# ============================================================================
-# PHASE 5: Final Upload and Cleanup
-# ============================================================================
-echo "[$(date)] Phase 5: Finalizing and uploading results..."
-
-# Ensure all results are uploaded (some may have been uploaded during training)
-# Upload any remaining logs and results
-if [ -d "Logs" ]; then
-    echo "[$(date)] Uploading logs..."
-    cd /home/$USER/FinalYearProject/SingleAgent
-    export PYTHONPATH="/home/$USER/FinalYearProject:${PYTHONPATH}"
-    python3 -c "
-from SingleAgent.common import uploadDataToBucket
-import os
-os.chdir('/home/$USER/FinalYearProject/SingleAgent')
-for log_dir in ['Logs']:
-    try:
-        uploadDataToBucket(log_dir)
-        print(f'Uploaded {log_dir}')
-    except Exception as e:
-        print(f'Error uploading {log_dir}: {e}')
-" || echo "Warning: Some logs may not have uploaded"
-fi
-
-# Upload the orchestrator log and real-time log
-if [ -f "$LOGFILE" ]; then
-    python3 << EOF
-from google.cloud import storage
-import os
-client = storage.Client()
-bucket = client.get_bucket('model-storage-data')
-from dateutil.utils import today
-folder_name = today().strftime('%Y-%m-%d') + '_test1'
-run_id = os.environ.get('TRAINING_RUN_ID', 'unknown')
-
-# Upload orchestrator log
-blob = bucket.blob(f'{folder_name}/orchestrator_logs/{run_id}/orchestrator.log')
-blob.upload_from_filename('$LOGFILE')
-print(f'Uploaded orchestrator log: {run_id}/orchestrator.log')
-
-# Upload real-time log if it exists
-if os.path.exists('$REALTIME_LOG'):
-    blob = bucket.blob(f'{folder_name}/orchestrator_logs/{run_id}/realtime.log')
-    blob.upload_from_filename('$REALTIME_LOG')
-    print(f'Uploaded real-time log: {run_id}/realtime.log')
-EOF
-    echo "[$(date)] Logs uploaded to GCS with Run ID: $RUN_ID"
-else
-    echo "Warning: Could not upload orchestrator log"
-fi
-
-# ============================================================================
-# PHASE 6: Shutdown
-# ============================================================================
-echo "[$(date)] Phase 6: Shutting down VM..."
-echo "[$(date)] All 10 models have been trained and uploaded to GCS"
-echo "[$(date)] Run ID: $RUN_ID"
-echo "[$(date)] Models are stored in unique locations in gs://model-storage-data"
-
-# Terminate VM using GCP API
-python3 << EOF
-from googleapiclient import discovery
-import sys
-
-try:
-    service = discovery.build('compute', 'v1')
-    project = 'final-year-project-477110'
-    zone = 'us-west1-a'
-    instance_name = 'single-agent-training'
-    
-    print("Terminating VM...")
-    request = service.instances().stop(project=project, zone=zone, instance=instance_name)
-    response = request.execute()
-    print("Stop request submitted successfully")
-    print("Response:", response)
-except Exception as e:
-    print(f"Error terminating VM: {e}")
-    print("VM may need to be stopped manually")
-    sys.exit(1)
-EOF
-
-if [ $? -eq 0 ]; then
-    echo "[$(date)] ✅ Shutdown command sent. VM will stop shortly."
-    echo "[$(date)] Cost optimization: VM will be stopped to prevent idle charges"
-else
-    echo "[$(date)] ⚠️  Warning: VM termination may have failed. Please check manually."
-fi
-echo "=========================================="
-echo "Training Orchestrator Complete: $(date)"
-echo "=========================================="
-
-# Note: The VM shutdown may take a moment, so we exit cleanly
+# Exit cleanly - VM stays running for manual training
+# Note: Training will be started manually via run_training.sh
+# VM shutdown should be done manually after training completes
 exit 0
 
 # ============================================================================

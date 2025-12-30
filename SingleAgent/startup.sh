@@ -212,6 +212,7 @@ echo "[$(date)] Phase 3: Setting up Python environment..."
 
 # Install PyTorch with CUDA 12.1 support (optimized for L4)
 # Use --no-cache-dir to save disk space and --timeout to prevent hangs
+sudo apt install python3-pip
 pip install --upgrade pip --timeout=300
 pip install --no-cache-dir --timeout=600 torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 || {
     echo "[$(date)] WARNING: PyTorch installation failed, retrying..."

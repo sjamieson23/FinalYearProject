@@ -177,6 +177,11 @@ mkdir -p Data
 mkdir -p Logs
 mkdir -p Results/Saves
 
+# Ensure proper ownership of directories (in case script runs as root)
+# This prevents permission errors when run_training.sh runs as regular user
+chown -R "$USER:$USER" Data Logs Results 2>/dev/null || true
+chmod -R u+w Data Logs Results 2>/dev/null || true
+
 # Download data from GCS
 echo "[$(date)] Downloading training data from GCS..."
 # Check if gsutil is available and authenticated
@@ -251,6 +256,11 @@ echo "[$(date)] Real-time logs available at: $REALTIME_LOG"
 # Change to SingleAgent directory where run_training.sh is located
 # run_training.sh is triggered from: /home/$USER/FinalYearProject/SingleAgent
 cd /home/$USER/FinalYearProject/SingleAgent
+
+# Ensure proper ownership of entire project directory (in case script runs as root)
+# This prevents permission errors when run_training.sh runs as regular user
+chown -R "$USER:$USER" /home/$USER/FinalYearProject 2>/dev/null || true
+chmod -R u+w /home/$USER/FinalYearProject 2>/dev/null || true
 
 # Make run_training.sh executable
 chmod +x run_training.sh

@@ -17,7 +17,6 @@ export PYTHONPATH="$(cd .. && pwd):${PYTHONPATH}"
 
 # Track training status
 TRAINING_ERRORS=0
-TRAINING_LOG="/home/$USER/training_status_${TRAINING_RUN_ID:-manual}.log"
 
 # Function to run a training script
 run_training() {
@@ -31,12 +30,12 @@ run_training() {
     echo "[$(date)] Working directory: $(pwd)"
     echo "[$(date)] ========================================"
     
-    # Run training with simple logging
-    if python3 "$script_path" >> "$TRAINING_LOG" 2>&1; then
+    # Run training without file logging (output to stdout/stderr only)
+    if python3 "$script_path"; then
         echo "[$(date)] ✅ SUCCESS: $description"
         return 0
     else
-        echo "[$(date)] ❌ FAILED: $description (check $TRAINING_LOG for details)"
+        echo "[$(date)] ❌ FAILED: $description"
         TRAINING_ERRORS=$((TRAINING_ERRORS + 1))
         return 1
     fi

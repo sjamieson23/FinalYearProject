@@ -3,7 +3,8 @@
 # This script runs on VM startup to set up the environment for training
 # Training is started manually via run_training.sh
 
-set -e  # Exit on error
+# Don't exit on error - we want to continue even if some steps fail
+# set -e  # Commented out to allow graceful error handling
 set -o pipefail  # Exit on pipe failure
 
 # Generate unique run ID for this training session (prevents GCS path conflicts)
@@ -72,8 +73,26 @@ snap install google-cloud-cli --classic
 fi
 
 # Update and install essentials (with non-interactive flag)
-sudo apt-get update -y
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip git build-essential dkms curl coreutils
+# Wait for apt lock to be released if another process is using it
+echo "[$(date)] Waiting for apt lock (if needed)..."
+timeout=300  # 5 minutes max wait
+while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+    echo "[$(date)] Apt lock detected, waiting 10 seconds..."
+    sleep 10
+    timeout=$((timeout - 10))
+    if [ $timeout -le 0 ]; then
+        echo "[$(date)] WARNING: Timeout waiting for apt lock. Continuing anyway..."
+        break
+    fi
+done
+
+sudo apt-get update -y || {
+    echo "[$(date)] WARNING: apt-get update failed (may already be updated). Continuing..."
+}
+
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip git build-essential dkms curl coreutils || {
+    echo "[$(date)] WARNING: Some packages may have failed to install. Continuing..."
+}
 
 # Install kernel headers
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y linux-headers-$(uname -r)
@@ -93,7 +112,15 @@ curl -f -s -L --retry 3 --retry-delay 5 https://nvidia.github.io/libnvidia-conta
 }
 
 # Update again to include NVIDIA repo
-sudo apt-get update -y
+# Wait for apt lock if needed
+while sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+    echo "[$(date)] Apt lock detected, waiting 5 seconds..."
+    sleep 5
+done
+
+sudo apt-get update -y || {
+    echo "[$(date)] WARNING: apt-get update failed. Continuing..."
+}
 
 # Install NVIDIA driver (550 works for L4)
 echo "[$(date)] Installing NVIDIA driver..."

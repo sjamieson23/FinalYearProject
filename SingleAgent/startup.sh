@@ -11,6 +11,10 @@ set -o pipefail  # Exit on pipe failure
 RUN_ID="run_$(date +%Y%m%d_%H%M%S)_$$"
 export TRAINING_RUN_ID="$RUN_ID"
 
+# Set USER variable (override any existing value)
+# Correct syntax: export USER=value (no $ before USER, no spaces around =)
+export USER="s_jamieson_22"
+
 # Log everything to a file for debugging
 LOGFILE="/home/$USER/training_orchestrator_${RUN_ID}.log"
 REALTIME_LOG="/home/$USER/realtime_training.log"

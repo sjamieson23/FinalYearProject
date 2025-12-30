@@ -45,8 +45,6 @@ val_ds.set_format(type="torch", columns=["input_ids", "attention_mask", "label"]
 test_ds.set_format(type="torch", columns=["input_ids", "attention_mask", "label"])
 
 model = BertForSequenceClassification.from_pretrained("bert-base-cased", num_labels=2)
-# Enable gradient checkpointing for memory efficiency
-model.gradient_checkpointing_enable()
 
 training_args = TrainingArguments(
     output_dir="Results/BertSubj/results_bert_base_cased_3_epochs",
@@ -87,8 +85,6 @@ def main():
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
     
     print(f"[BERT Subject] Starting training with batch size {training_args.per_device_train_batch_size}")
-    print(f"[BERT Subject] Effective batch size: {training_args.per_device_train_batch_size * training_args.gradient_accumulation_steps}")
-    print(f"[BERT Subject] Gradient checkpointing: {model.is_gradient_checkpointing}")
     
     # Check GPU memory before training
     if torch.cuda.is_available():

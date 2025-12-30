@@ -85,8 +85,6 @@ def main():
     torch.cuda.empty_cache() if torch.cuda.is_available() else None
     
     print(f"[BERT Body] Starting training with batch size {training_args.per_device_train_batch_size}")
-    print(f"[BERT Body] Effective batch size: {training_args.per_device_train_batch_size * training_args.gradient_accumulation_steps}")
-    print(f"[BERT Body] Gradient checkpointing: {model.is_gradient_checkpointing}")
     
     # Check GPU memory before training
     if torch.cuda.is_available():

@@ -71,7 +71,6 @@ snap install google-cloud-cli --classic
 fi
 
 # Update and install essentials (with non-interactive flag)
-# Install stdbuf for line buffering (part of coreutils, but ensure it's available)
 sudo apt-get update -y
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip git build-essential dkms curl coreutils
 
@@ -104,9 +103,10 @@ sleep 10
 nvidia-smi || echo "Warning: nvidia-smi not available yet, continuing..."
 
 # Configure GCP
-gcloud config set project final-year-project-477110
-gcloud services enable compute.googleapis.com
-gcloud services enable storage.googleapis.com
+# Note: APIs should be enabled at project level before VM creation
+gcloud config set project final-year-project-477110 || {
+    echo "[$(date)] WARNING: Could not set GCP project. Continuing..."
+}
 
 # ============================================================================
 # PHASE 2: Project Setup

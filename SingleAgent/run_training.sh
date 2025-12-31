@@ -44,9 +44,9 @@ run_training() {
 # GPU-INTENSIVE MODELS (Run sequentially)
 echo "[$(date)] === Training GPU Models (Sequential) ==="
 
-run_training "bert_body" "bert_body.py" "BERT Body Model"
-run_training "bert_subj" "bert_subj.py" "BERT Subject Model"
-run_training "bert_body_and_subj" "bert_body_and_subj.py" "BERT Body and Subject Model"
+#run_training "bert_body" "bert_body.py" "BERT Body Model"
+#run_training "bert_subj" "bert_subj.py" "BERT Subject Model"
+#run_training "bert_body_and_subj" "bert_body_and_subj.py" "BERT Body and Subject Model"
 
 # CPU-BASED MODELS (Run sequentially)
 echo "[$(date)] === Training CPU Models (Sequential) ==="

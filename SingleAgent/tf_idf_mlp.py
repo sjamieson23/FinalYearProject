@@ -1,4 +1,6 @@
 import os
+import time
+from datetime import datetime
 
 import joblib
 import pandas as pd
@@ -52,35 +54,51 @@ def main():
     X_val_tfidf = tfidf.transform(X_val)
     X_test_tfidf = tfidf.transform(X_test)
 
+    # Optimized parameter grid: Reduced from 135 to 12 combinations for ~5 hour runtime
+    # Target: 12 combinations × ~25 min each = ~5 hours total
     param_grid = {
-        "hidden_layer_sizes": [(200,), (300,), (200, 100), (300, 150), (500, 250)],
-        "alpha": [0.00001, 0.0001, 0.001],  # Lower regularization for large datasets
-        "learning_rate_init": [0.0001, 0.001, 0.01],
-        "batch_size": ['auto', 200, 500]  # Batch size for efficient training on large data
+        "hidden_layer_sizes": [(200,), (300,), (200, 100)],  # Reduced from 5 to 3 (removed largest: (300,150), (500,250))
+        "alpha": [0.0001, 0.001],  # Reduced from 3 to 2 (removed 0.00001)
+        "learning_rate_init": [0.001, 0.01],  # Reduced from 3 to 2 (removed 0.0001)
+        "batch_size": ['auto']  # Reduced from 3 to 1 (fixed to 'auto' for consistency)
     }
+    # Total: 3 × 2 × 2 × 1 = 12 combinations
+    
+    param_list = list(ParameterGrid(param_grid))
+    total_combinations = len(param_list)
+    script_start_time = time.time()
+    
+    print(f"[{datetime.now()}] Starting TF-IDF MLP grid search with {total_combinations} combinations")
+    print(f"[{datetime.now()}] TF-IDF matrix shape: {X_train_tfidf.shape}")
+    print(f"[{datetime.now()}] Target runtime: ~5 hours maximum")
 
     best_f1 = -1.0
     best_params = None
     best_model = None
     best_tfidf = None
 
-    for params in ParameterGrid(param_grid):
+    for idx, params in enumerate(param_list, 1):
+        combo_start_time = time.time()
         hidden_layer_sizes = params["hidden_layer_sizes"]
         alpha = params["alpha"]
         learning_rate_init = params["learning_rate_init"]
         batch_size = params["batch_size"]
-        # Define MLP classifier
+        
+        print(f"\n[{datetime.now()}] [{idx}/{total_combinations}] Training: hidden_layer_sizes={hidden_layer_sizes}, alpha={alpha}, learning_rate_init={learning_rate_init}, batch_size={batch_size}")
+        
+        # Define MLP classifier with optimized settings
         model = MLPClassifier(
             hidden_layer_sizes=hidden_layer_sizes,
             alpha=alpha,
             learning_rate_init=learning_rate_init,
             batch_size=batch_size,
-            max_iter=1000,  # Increased for large datasets - MLPs need more iterations
+            max_iter=400,  # Reduced from 1000 to 300 - early stopping should catch convergence
             random_state=42,
             early_stopping=True,  # Stop early if validation score doesn't improve
             validation_fraction=0.1,  # Use 10% of training data for validation
-            n_iter_no_change=20,  # More patience for large datasets
-            tol=1e-4  # Tolerance for optimization
+            n_iter_no_change=15,  # Reduced from 20 to 10 for faster convergence detection
+            tol=1e-4,  # Tolerance for optimization
+            verbose=False
         )
         # train only on training set
         model.fit(X_train_tfidf, y_train)
@@ -88,14 +106,21 @@ def main():
         # evaluate on validation set
         y_val_pred = model.predict(X_val_tfidf)
         f1 = f1_score(y_val, y_val_pred)
-
-        print(f"hidden_layer_sizes={hidden_layer_sizes}, alpha={alpha}, learning_rate_init={learning_rate_init}, batch_size={batch_size}: val F1={f1:.4f}")
+        
+        combo_elapsed = time.time() - combo_start_time
+        total_elapsed = time.time() - script_start_time
+        avg_time_per_combo = total_elapsed / idx
+        estimated_remaining = avg_time_per_combo * (total_combinations - idx)
+        
+        print(f"[{datetime.now()}] Completed in {combo_elapsed:.1f}s ({combo_elapsed/60:.1f}min) - val F1={f1:.4f}")
+        print(f"[{datetime.now()}] Progress: {idx}/{total_combinations} | Elapsed: {total_elapsed/60:.1f}min | Est. remaining: {estimated_remaining/60:.1f}min")
 
         if f1 > best_f1:
             best_f1 = f1
             best_params = params
             best_model = model
             best_tfidf = tfidf
+            print(f"[{datetime.now()}] *** New best F1: {best_f1:.4f} ***")
 
     print(f"\nBest params based on validation F1: {best_params}, F1={best_f1:.4f}")
     # Get class probabilities on the test set

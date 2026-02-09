@@ -92,22 +92,20 @@ def main():
     print(f"[{datetime.now()}] Document embeddings created in {(time.time() - embed_start)/60:.1f} minutes")
     print(f"[{datetime.now()}] Embedding shape: {X_train_embeddings.shape}")
 
-    # Optimized parameter grid: Reduced from 135 to 12 combinations for ~5 hour runtime
-    # Target: ~1h Word2Vec + embeddings, ~4h MLP grid search (12 combos × ~20 min each)
+    # Aligned with tf_idf_mlp.py: same grid for consistency (~218k emails, 70/15/15 split)
     param_grid = {
-        "hidden_layer_sizes": [(200,), (300,), (200, 100)],  # Reduced from 5 to 3 (removed largest: (300,150), (500,250))
-        "alpha": [0.0001, 0.001],  # Reduced from 3 to 2 (removed 0.00001)
-        "learning_rate_init": [0.001, 0.01],  # Reduced from 3 to 2 (removed 0.0001)
-        "batch_size": ['auto']  # Reduced from 3 to 1 (fixed to 'auto' for consistency)
+        "hidden_layer_sizes": [(256,)],
+        "alpha": [0.0001, 0.001],
+        "learning_rate_init": [0.001, 0.01],
+        "batch_size": ['auto']
     }
-    # Total: 3 × 2 × 2 × 1 = 12 combinations
+    # Total: 1 × 2 × 2 × 1 = 4 combinations (Word2Vec runs faster: 300-d input vs 100k-d sparse)
     
     param_list = list(ParameterGrid(param_grid))
     total_combinations = len(param_list)
     mlp_start_time = time.time()
     
-    print(f"\n[{datetime.now()}] Starting Word2Vec MLP grid search with {total_combinations} combinations")
-    print(f"[{datetime.now()}] Target runtime: ~5 hours maximum (including Word2Vec training)")
+    print(f"\n[{datetime.now()}] Starting Word2Vec MLP grid search with {total_combinations} combinations (same grid as tf_idf_mlp; 300-d input → faster per run)")
 
     best_f1 = -1.0
     best_params = None
@@ -123,18 +121,18 @@ def main():
         
         print(f"\n[{datetime.now()}] [{idx}/{total_combinations}] Training: hidden_layer_sizes={hidden_layer_sizes}, alpha={alpha}, learning_rate_init={learning_rate_init}, batch_size={batch_size}")
         
-        # Define MLP classifier with optimized settings
+        # Define MLP classifier (aligned with tf_idf_mlp.py)
         model = MLPClassifier(
             hidden_layer_sizes=hidden_layer_sizes,
             alpha=alpha,
             learning_rate_init=learning_rate_init,
             batch_size=batch_size,
-            max_iter=300,  # Reduced from 1000 to 300 - early stopping should catch convergence
+            max_iter=400,
             random_state=42,
-            early_stopping=True,  # Stop early if validation score doesn't improve
-            validation_fraction=0.1,  # Use 10% of training data for validation
-            n_iter_no_change=10,  # Reduced from 20 to 10 for faster convergence detection
-            tol=1e-4,  # Tolerance for optimization
+            early_stopping=True,
+            validation_fraction=0.1,
+            n_iter_no_change=15,
+            tol=1e-4,
             verbose=False
         )
         # train only on training set

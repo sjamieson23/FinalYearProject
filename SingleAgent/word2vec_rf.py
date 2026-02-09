@@ -58,21 +58,21 @@ def main():
     print("Tokenizing texts for Word2Vec training...")
     train_sentences = [tokenize_text(text) for text in X_train]
     
-    # Train Word2Vec model on training data (optimized for large datasets)
+    # Train Word2Vec model on training data (~218k emails, 70% train ≈ 152.6k docs)
     print("Training Word2Vec model...")
     word2vec_model = Word2Vec(
         sentences=train_sentences,
         vector_size=300,  # Dimensionality of word embeddings
-        window=10,  # Larger context window for better semantic capture
-        min_count=5,  # Higher threshold for large datasets - filters rare/noisy words
-        workers=-1,  # Use all available CPU cores for parallelization
-        sg=1,  # Skip-gram (1) often performs better than CBOW (0) on large datasets
-        epochs=20,  # More epochs for better convergence on large datasets
-        negative=5,  # Negative sampling for efficiency (default is 5)
-        ns_exponent=0.75,  # Negative sampling exponent (standard value)
-        sample=1e-4,  # Downsample frequent words (helps with large vocabularies)
+        window=10,  # Context window (words each side); larger = more semantic, slower
+        min_count=5,  # Ignore words with count < 5; reduces noise on large datasets
+        workers=8,  # Parallel workers (align with word2vec_mlp; use -1 for all cores)
+        sg=1,  # Skip-gram (1) vs CBOW (0); skip-gram often better for large data
+        epochs=15,  # Training passes; 15–20 typical for large data
+        negative=5,  # Negative samples per positive (efficiency vs quality)
+        ns_exponent=0.75,  # Negative sampling exponent (standard)
+        sample=1e-4,  # Subsample very frequent words
         alpha=0.025,  # Initial learning rate
-        min_alpha=0.0001  # Minimum learning rate
+        min_alpha=0.0001  # Final learning rate
     )
     
     # Create document embeddings by averaging word vectors

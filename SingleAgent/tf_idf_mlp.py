@@ -50,14 +50,16 @@ def main():
         max_features=100000  # Increased for large dataset - can capture more vocabulary
     )
     X_train_tfidf = tfidf.fit_transform(X_train)
+    print(f"[{datetime.now()}] TF-IDF matrix shape: {X_train_tfidf.shape}")
+    print(f"[{datetime.now()}] Fitted")
     # Use the fitted TF-IDF to transform validation and test text
     X_val_tfidf = tfidf.transform(X_val)
     X_test_tfidf = tfidf.transform(X_test)
-
+    print(f"[{datetime.now()}] Transformed")
     # Optimized parameter grid: Reduced from 135 to 12 combinations for ~5 hour runtime
     # Target: 12 combinations × ~25 min each = ~5 hours total
     param_grid = {
-        "hidden_layer_sizes": [(200,), (300,), (200, 100)],  # Reduced from 5 to 3 (removed largest: (300,150), (500,250))
+        "hidden_layer_sizes": [(256,)],  # Reduced from 5 to 3 (removed largest: (300,150), (500,250))
         "alpha": [0.0001, 0.001],  # Reduced from 3 to 2 (removed 0.00001)
         "learning_rate_init": [0.001, 0.01],  # Reduced from 3 to 2 (removed 0.0001)
         "batch_size": ['auto']  # Reduced from 3 to 1 (fixed to 'auto' for consistency)

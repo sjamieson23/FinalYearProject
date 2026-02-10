@@ -159,6 +159,7 @@ def main():
     print(f"Vectorizer saved to: {vectorizer_file}")
 
 if __name__ == "__main__":
+    print(f"[{datetime.now()}] Starting TF-IDF MLP")
     try:
         main()
         # Upload metrics, model, and vectorizer to bucket

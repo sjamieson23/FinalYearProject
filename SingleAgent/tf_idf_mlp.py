@@ -161,6 +161,7 @@ def main():
 if __name__ == "__main__":
     print(f"[{datetime.now()}] Starting TF-IDF MLP")
     try:
+        print("Starting training...")
         main()
         # Upload metrics, model, and vectorizer to bucket
         uploadDataToBucket("Results/TFIDFBodyAndSubjectMLP")

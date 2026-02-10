@@ -31,7 +31,7 @@ run_training() {
     echo "[$(date)] ========================================"
     
     # Run training without file logging (output to stdout/stderr only)
-    if python3 "$script_path"; then
+    if python3 -u "$script_path"; then
         echo "[$(date)] ✅ SUCCESS: $description"
         return 0
     else

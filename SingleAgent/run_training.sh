@@ -55,9 +55,10 @@ echo "[$(date)] === Training CPU Models (Sequential) ==="
 #run_training "tf_idf_nb" "tf_idf_nb.py" "TF-IDF Naive Bayes"
 #run_training "tf_idf_dt" "tf_idf_dt.py" "TF-IDF Decision Tree"
 #run_training "tf_idf_rf" "tf_idf_rf.py" "TF-IDF Random Forest"
+run_training "tf_idf_mlp" "tf_idf_mlp.py" "TF-IDF Multi-Layer Perceptron"
 run_training "word2vec_mlp" "word2vec_mlp.py" "Word2Vec Multi-Layer Perceptron"
 run_training "word2vec_rf" "word2vec_rf.py" "Word2Vec Random Forest"
-run_training "tf_idf_mlp" "tf_idf_mlp.py" "TF-IDF Multi-Layer Perceptron"
+
 
 echo "[$(date)] === Training Pipeline Complete ==="
 echo "[$(date)] Total models trained: 10"

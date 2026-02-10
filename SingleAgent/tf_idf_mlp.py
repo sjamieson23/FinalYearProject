@@ -42,6 +42,7 @@ X_test  = test_df["text"]
 y_test  = test_df["label"]
 
 def main():
+    print(f"[{datetime.now()}] Starting TF-IDF Vectorisation")
     # Create the TF-IDF vectorizer
     tfidf = TfidfVectorizer(
         ngram_range=(1, 2),  # Use unigrams and bigrams; adds some phrase-level info

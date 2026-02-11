@@ -18,9 +18,9 @@ from transformers import BertForSequenceClassification, BertTokenizer
 # Paths relative to project root
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEST_CSV = os.path.join(PROJECT_ROOT, "EnsembleAgent", "Data", "all_data_test.csv")
-BERT_BODY_AND_SUBJ_DIR = os.path.join(PROJECT_ROOT, "SingleAgent", "PreTrained", "BertBodyAndSubj")
-BERT_BODY_MODEL_DIR = os.path.join(PROJECT_ROOT, "SingleAgent", "PreTrained", "SavedModels", "BertBody", "model")
-BERT_BODY_TOKENIZER_DIR = os.path.join(PROJECT_ROOT, "SingleAgent", "PreTrained", "SavedModels", "BertBody", "tokenizer")
+BERT_BODY_AND_SUBJ_DIR = os.path.join(PROJECT_ROOT, "EnsembleAgent", "SavedModels", "BertBodyAndSubj")
+BERT_BODY_MODEL_DIR = os.path.join(PROJECT_ROOT, "EnsembleAgent", "SavedModels", "BertBody", "model")
+BERT_BODY_TOKENIZER_DIR = os.path.join(PROJECT_ROOT, "EnsembleAgent", "SavedModels", "BertBody", "tokenizer")
 
 MAX_LENGTH = 512
 BATCH_SIZE = 32

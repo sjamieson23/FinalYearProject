@@ -152,14 +152,14 @@ def main():
     model_bs.to(DEVICE)
 
     print("Loading BertBody (body only)...")
-    tokenizer_b = BertTokenizer.from_pretrained(BERT_BODY_TOKENIZER_DIR)
+    tokenizer_b = BertTokenizer.from_pretrained(BERT_SUBJ_MODEL_DIR)
     model_b = BertForSequenceClassification.from_pretrained(
         BERT_BODY_MODEL_DIR, num_labels=2
     )
     model_b.to(DEVICE)
 
     print("Loading BertSubj (subject only)...")
-    tokenizer_subj = BertTokenizer.from_pretrained(BERT_SUBJ_TOKENIZER_DIR)
+    tokenizer_subj = BertTokenizer.from_pretrained(BERT_SUBJ_MODEL_DIR)
     model_subj = BertForSequenceClassification.from_pretrained(
         BERT_SUBJ_MODEL_DIR, num_labels=2
     )

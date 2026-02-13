@@ -18,49 +18,45 @@ from sklearn.metrics import f1_score
 from transformers import BertForSequenceClassification, BertTokenizer
 
 # Paths relative to project root
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 TEST_CSV = os.path.join(
-    PROJECT_ROOT, "EnsembleAgent", "Data", "all_data_test.csv"
+    "Data", "all_data_test.csv"
 )
 BERT_BODY_AND_SUBJ_DIR = os.path.join(
-    PROJECT_ROOT, "EnsembleAgent", "SavedModels", "BertBodyAndSubj", "model"
+    "SavedModels", "BertBodyAndSubj", "model"
 )
 BERT_BODY_MODEL_DIR = os.path.join(
-    PROJECT_ROOT, "EnsembleAgent", "SavedModels", "BertBody", "model"
+    "SavedModels", "BertBody", "model"
 )
 BERT_BODY_TOKENIZER_DIR = os.path.join(
-    PROJECT_ROOT, "EnsembleAgent", "SavedModels", "BertBody", "tokenizer"
+    "SavedModels", "BertBody", "tokenizer"
 )
 BERT_SUBJ_MODEL_DIR = os.path.join(
-    PROJECT_ROOT, "EnsembleAgent", "SavedModels", "BertSubj", "model"
+    "SavedModels", "BertSubj", "model"
 )
 BERT_SUBJ_TOKENIZER_DIR = os.path.join(
-    PROJECT_ROOT, "EnsembleAgent", "SavedModels", "BertSubj", "tokenizer"
+    "SavedModels", "BertSubj", "tokenizer"
 )
-
-# Classical model result directories (trained in SingleAgent)
-SINGLE_AGENT_RESULTS_DIR = os.path.join(PROJECT_ROOT, "SingleAgent", "Results")
 
 RESULTS_TFIDF_MLP = os.path.join(
-    SINGLE_AGENT_RESULTS_DIR, "TFIDFBodyAndSubjectMLP"
+    "SavedModels", "TFIDFBodyAndSubjectMLP"
 )
 RESULTS_TFIDF_LR = os.path.join(
-    SINGLE_AGENT_RESULTS_DIR, "TFIDFBodyAndSubjectLR"
+    "SavedModels", "TFIDFBodyAndSubjectLR"
 )
 RESULTS_TFIDF_RF = os.path.join(
-    SINGLE_AGENT_RESULTS_DIR, "TFIDFBodyAndSubjectRF"
+    "SavedModels", "TFIDFBodyAndSubjectRF"
 )
 RESULTS_TFIDF_NB = os.path.join(
-    SINGLE_AGENT_RESULTS_DIR, "TFIDFBodyAndSubjectNB"
+    "SavedModels", "TFIDFBodyAndSubjectNB"
 )
 RESULTS_TFIDF_DT = os.path.join(
-    SINGLE_AGENT_RESULTS_DIR, "TFIDFBodyAndSubjectDT"
+    "SavedModels", "TFIDFBodyAndSubjectDT"
 )
 RESULTS_W2V_MLP = os.path.join(
-    SINGLE_AGENT_RESULTS_DIR, "Word2VecBodyAndSubjectMLP"
+    "SavedModels", "Word2VecBodyAndSubjectMLP"
 )
 RESULTS_W2V_RF = os.path.join(
-    SINGLE_AGENT_RESULTS_DIR, "Word2VecBodyAndSubjectRF"
+    "SavedModels", "Word2VecBodyAndSubjectRF"
 )
 
 MAX_LENGTH = 512

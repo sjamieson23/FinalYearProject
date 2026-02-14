@@ -25,7 +25,7 @@ test_df["label"] = test_df["label"].astype(int)
 def combine_text(row):
     subj = str(row["subject"]) if not pd.isna(row["subject"]) else ""
     body = str(row["body"]) if not pd.isna(row["body"]) else ""
-    return subj.strip() + body.strip()
+    return subj.strip() + " [SEP] " + body.strip()
 
 
 train_df["text"] = train_df.apply(combine_text, axis=1)

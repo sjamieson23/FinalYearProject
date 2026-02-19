@@ -33,7 +33,7 @@ RESULTS_TFIDF_LR = os.path.join(
 )
 
 RESULTS_W2V_MLP = os.path.join(
-    "SavedModels", "Word2VecMLP"
+    "SavedModels", "Word2VecBodyAndSubjectMLP"
 )
 
 

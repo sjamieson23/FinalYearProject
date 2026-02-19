@@ -46,10 +46,10 @@ RESULTS_TFIDF_DT = os.path.join(
     "SavedModels", "TFIDFBodyAndSubjectDT"
 )
 RESULTS_W2V_MLP = os.path.join(
-    "SavedModels", "Word2VecMLP"
+    "SavedModels", "Word2VecBodyAndSubjectMLP"
 )
 RESULTS_W2V_RF = os.path.join(
-    "SavedModels", "Word2VecRF"
+    "SavedModels", "Word2VecBodyAndSubjectRF"
 )
 
 MAX_LENGTH = 512

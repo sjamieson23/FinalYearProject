@@ -133,6 +133,7 @@ def main():
                     padding="max_length",
                     truncation=True,
                     max_length=MAX_LENGTH,
+                    return_tensors="pt"
                 )
                 encodings = {k: v.to(device) for k, v in encodings.items()}
                 outputs = model(**encodings)

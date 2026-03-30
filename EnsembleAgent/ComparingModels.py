@@ -13,7 +13,7 @@ from transformers import BertForSequenceClassification, BertTokenizer
 # Paths relative to project root
 TEST_CSV = os.path.join(
     "Data", "all_data_test.csv"
-    #"Data", "spearbot_data.csv"
+    #"Data", "finetune_testing_data.csv"
 )
 BERT_BODY_AND_SUBJ_DIR = os.path.join(
     #"SavedModels", "BertBodyAndSubj", "model"
@@ -37,32 +37,32 @@ BERT_SUBJ_TOKENIZER_DIR = os.path.join(
 )
 
 RESULTS_TFIDF_MLP = os.path.join(
-    #"SavedModels", "TFIDFBodyAndSubjectMLP"
-    "FinetunedOutputs", "TFIDFBodyAndSubjectMLP"
+    "SavedModels", "TFIDFBodyAndSubjectMLP"
+    #"FinetunedOutputs", "TFIDFBodyAndSubjectMLP"
 )
 RESULTS_TFIDF_LR = os.path.join(
-    #"SavedModels", "TFIDFBodyAndSubjectLR"
-    "FinetunedOutputs", "TFIDFBodyAndSubjectLR"
+    "SavedModels", "TFIDFBodyAndSubjectLR"
+    #"FinetunedOutputs", "TFIDFBodyAndSubjectLR"
 )
 RESULTS_TFIDF_RF = os.path.join(
-    #"SavedModels", "TFIDFBodyAndSubjectRF"
-    "FinetunedOutputs", "TFIDFBodyAndSubjectRF"
+    "SavedModels", "TFIDFBodyAndSubjectRF"
+    #"FinetunedOutputs", "TFIDFBodyAndSubjectRF"
 )
 RESULTS_TFIDF_NB = os.path.join(
-    #"SavedModels", "TFIDFBodyAndSubjectNB"
-    "FinetunedOutputs", "TFIDFBodyAndSubjectNB"
+    "SavedModels", "TFIDFBodyAndSubjectNB"
+    #"FinetunedOutputs", "TFIDFBodyAndSubjectNB"
 )
 RESULTS_TFIDF_DT = os.path.join(
-    #"SavedModels", "TFIDFBodyAndSubjectDT"
-    "FinetunedOutputs", "TFIDFBodyAndSubjectDT"
+    "SavedModels", "TFIDFBodyAndSubjectDT"
+    #"FinetunedOutputs", "TFIDFBodyAndSubjectDT"
 )
 RESULTS_W2V_MLP = os.path.join(
-    #"SavedModels", "Word2VecBodyAndSubjectMLP"
-    "FinetunedOutputs", "Word2VecBodyAndSubjectMLP"
+    "SavedModels", "Word2VecBodyAndSubjectMLP"
+    #"FinetunedOutputs", "Word2VecBodyAndSubjectMLP"
 )
 RESULTS_W2V_RF = os.path.join(
-    #"SavedModels", "Word2VecBodyAndSubjectRF"
-    "FinetunedOutputs", "Word2VecBodyAndSubjectRF"
+    "SavedModels", "Word2VecBodyAndSubjectRF"
+    #"FinetunedOutputs", "Word2VecBodyAndSubjectRF"
 )
 
 MAX_LENGTH = 512
@@ -199,11 +199,11 @@ def main():
     # All TF-IDF models use the same vectorizer, so transform once
     X_tfidf = tfidf_vectorizer.transform(test_df["text_tfidf"])
 
-    pred_tfidf_mlp = tfidf_mlp_model.predict(X_tfidf)
-    pred_tfidf_lr = tfidf_lr_model.predict(X_tfidf)
-    pred_tfidf_rf = tfidf_rf_model.predict(X_tfidf)
-    pred_tfidf_nb = tfidf_nb_model.predict(X_tfidf)
-    pred_tfidf_dt = tfidf_dt_model.predict(X_tfidf)
+    #pred_tfidf_mlp = tfidf_mlp_model.predict(X_tfidf)
+    #pred_tfidf_lr = tfidf_lr_model.predict(X_tfidf)
+    #pred_tfidf_rf = tfidf_rf_model.predict(X_tfidf)
+   # pred_tfidf_nb = tfidf_nb_model.predict(X_tfidf)
+   # pred_tfidf_dt = tfidf_dt_model.predict(X_tfidf)
 
     # Text for Word2Vec models (subject + [SEP] + body)
     test_df["text_w2v"] = test_df.apply(combine_text_w2v, axis=1)
@@ -214,8 +214,8 @@ def main():
         [document_vector(w2v_rf_w2v, doc) for doc in test_df["text_w2v"]]
     )
 
-    pred_w2v_mlp = w2v_mlp_model.predict(X_w2v_mlp)
-    pred_w2v_rf = w2v_rf_model.predict(X_w2v_rf)
+    #pred_w2v_mlp = w2v_mlp_model.predict(X_w2v_mlp)
+    #pred_w2v_rf = w2v_rf_model.predict(X_w2v_rf)
 
     # Text for BERT models
     subj_series = test_df["subject"].fillna("").astype(str)
@@ -233,13 +233,13 @@ def main():
     # Count uniquely correct predictions per model
     # ------------------------------------------------------------------
     model_preds = {
-        "TFIDFBodyAndSubjectMLP": pred_tfidf_mlp,
-        "TFIDFBodyAndSubjectLR": pred_tfidf_lr,
-        "TFIDFBodyAndSubjectRF": pred_tfidf_rf,
-        "TFIDFBodyAndSubjectNB": pred_tfidf_nb,
-        "TFIDFBodyAndSubjectDT": pred_tfidf_dt,
-        "Word2VecBodyAndSubjectMLP": pred_w2v_mlp,
-        "Word2VecBodyAndSubjectRF": pred_w2v_rf,
+       # "TFIDFBodyAndSubjectMLP": pred_tfidf_mlp,
+       # "TFIDFBodyAndSubjectLR": pred_tfidf_lr,
+       # "TFIDFBodyAndSubjectRF": pred_tfidf_rf,
+       # "TFIDFBodyAndSubjectNB": pred_tfidf_nb,
+       # "TFIDFBodyAndSubjectDT": pred_tfidf_dt,
+        #"Word2VecBodyAndSubjectMLP": pred_w2v_mlp,
+        #"Word2VecBodyAndSubjectRF": pred_w2v_rf,
         "BertBodyAndSubj": pred_bert_bs,
         "BertBody": pred_bert_body,
         "BertSubj": pred_bert_subj,

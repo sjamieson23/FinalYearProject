@@ -504,8 +504,8 @@ def domain_correlations(data):
 
 
 if __name__ == "__main__":
-    data = pd.read_csv("Data/ProcessedData/all_data.csv")
-    seven_column_data = pd.read_csv("Data/ProcessedData/seven_column_data.csv")
+    data = pd.read_csv("Data/Original/ProcessedData/all_data.csv")
+    seven_column_data = pd.read_csv("Data/Original/ProcessedData/seven_column_data.csv")
     percentage_capitalisation(data)
     #word_cloud(data)
     probability_of_null_body_or_subject(data)

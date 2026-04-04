@@ -107,7 +107,7 @@ def split_data(name):
     print(f"Total number of testing emails: {test_total_rows} of which phishing emails: {test_label_equals_1}")
 
 if __name__ == '__main__':
-    raw_path = Path('Data/RawData')
+    raw_path = Path('Data/Original/RawData')
     p_total_rows_all = 0
     p_total_phish_all = 0
     p_total_rows_7_colums = 0
@@ -125,7 +125,7 @@ if __name__ == '__main__':
                 p_total_rows_7_colums += response[0]
                 p_total_phish_7_colums += response[1]
     combineDataSets(raw_path)
-    processed_path = Path('Data/ProcessedData')
+    processed_path = Path('Data/Original/ProcessedData')
     for item in processed_path.iterdir():
         if item.name.endswith(".csv"):
             response = process_all_data(item.name)

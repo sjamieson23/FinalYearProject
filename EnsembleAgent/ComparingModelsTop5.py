@@ -7,15 +7,20 @@ import numpy as np
 import pandas as pd
 import torch
 from gensim.models import Word2Vec
-from sklearn.metrics import f1_score
 from transformers import BertForSequenceClassification, BertTokenizer
 
 # Paths relative to project root
 TEST_CSV = os.path.join(
-    "Data", "all_data_test.csv"
+    #"Data", "all_data_test.csv"
+    #"Data", "spear_test.csv"
+    #"Data", "simulated_phishing_dataset.csv"
+    #"Data", "phishing_dataset_100_binary.csv"
+    #"Data", "finetune_testing_data.csv"
+    "Data", "ensemble_testing_data.csv"
 )
 BERT_BODY_AND_SUBJ_DIR = os.path.join(
-    "SavedModels", "BertBodyAndSubj", "model"
+    #"SavedModels", "BertBodyAndSubj", "model"
+    "FinetunedOutputs", "BertBodyAndSubj", "model"
 )
 BERT_BODY_MODEL_DIR = os.path.join(
     "SavedModels", "BertBody", "model"
@@ -186,6 +191,43 @@ def main():
         "BertBody": pred_bert_body,
     }
 
+    model_metrics = {}
+    for name, preds in model_preds.items():
+        tp = 0
+        fp = 0
+        tn = 0
+        fn = 0
+
+        for i in range(len(y_true)):
+            pred = int(preds[i])
+            true = int(y_true[i])
+
+            if pred == 1 and true == 1:
+                tp += 1
+            elif pred == 1 and true == 0:
+                fp += 1
+            elif pred == 0 and true == 0:
+                tn += 1
+            elif pred == 0 and true == 1:
+                fn += 1
+
+        total = tp + tn + fp + fn
+        accuracy = (tp + tn) / total if total > 0 else 0.0
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1 = (2 * precision * recall / (precision + recall)) if (precision + recall) > 0 else 0.0
+
+        model_metrics[name] = {
+            "tp": tp,
+            "fp": fp,
+            "tn": tn,
+            "fn": fn,
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "f1": f1,
+        }
+
     unique_counts = {name: 0 for name in model_preds.keys()}
 
     for i in range(len(y_true)):
@@ -200,7 +242,18 @@ def main():
     # ------------------------------------------------------------------
     # Print results
     # ------------------------------------------------------------------
-    print("Uniquely correct predictions per model:")
+    print("\nPer-model metrics:")
+    for name, metrics in model_metrics.items():
+        print(
+            f"{name}: "
+            f"accuracy={metrics['accuracy']:.4f}, "
+            f"precision={metrics['precision']:.4f}, "
+            f"recall={metrics['recall']:.4f}, "
+            f"f1={metrics['f1']:.4f}, "
+            f"tp={metrics['tp']}, fp={metrics['fp']}, tn={metrics['tn']}, fn={metrics['fn']}"
+        )
+
+    print("\nUniquely correct predictions per model:")
     for name, count in unique_counts.items():
         print(f"{name}: {count}")
 

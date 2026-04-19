@@ -26,7 +26,7 @@ else:
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_CSV = os.path.join(SCRIPT_DIR, "Data", "ensemble_testing_data.csv")
 MODEL_ROOTS = [
-    os.path.join(SCRIPT_DIR, "TopModels"),
+    os.path.join(SCRIPT_DIR, "StackModels"),
     #os.path.join(SCRIPT_DIR, "FinetunedOutputs"),
     #os.path.join(SCRIPT_DIR, "SavedModels"),
 ]
@@ -254,10 +254,14 @@ def save_upset_plot(model_preds, y_true, out_path):
     indices = np.arange(n, dtype=np.int64)
     y = np.asarray(y_true).astype(int)
     contents = {}
+    seen_short = set()
     for name, preds in model_preds.items():
         p = np.asarray(preds).astype(int)
         mask = p == y
-        contents[name] = indices[mask]
+        short = _heatmap_axis_label(name)
+        label = short if short not in seen_short else name
+        seen_short.add(short)
+        contents[label] = indices[mask]
 
     upset_data = from_contents(contents)
     n_models = len(model_preds)
@@ -280,11 +284,18 @@ def pairwise_prediction_agreement_matrix(model_preds: dict) -> tuple[np.ndarray,
     return agreement, names
 
 
+def _heatmap_axis_label(full_display_name: str) -> str:
+    """Strip root directory prefix (e.g. TopModels/ModelName -> ModelName)."""
+    return full_display_name.replace("\\", "/").rsplit("/", 1)[-1]
+
+
 def save_pairwise_agreement_heatmap(model_preds: dict, out_png: str, out_csv: Optional[str]):
     agreement, names = pairwise_prediction_agreement_matrix(model_preds)
     m = len(names)
     if m == 0:
         return
+
+    axis_labels = [_heatmap_axis_label(n) for n in names]
 
     df = pd.DataFrame(agreement, index=names, columns=names)
     if out_csv:
@@ -297,8 +308,8 @@ def save_pairwise_agreement_heatmap(model_preds: dict, out_png: str, out_csv: Op
     ax.set_xticks(np.arange(m))
     ax.set_yticks(np.arange(m))
     tick_fs = max(5, min(9, 130 // max(m, 1)))
-    ax.set_xticklabels(names, rotation=90, ha="right", fontsize=tick_fs)
-    ax.set_yticklabels(names, fontsize=tick_fs)
+    ax.set_xticklabels(axis_labels, rotation=90, ha="right", fontsize=tick_fs)
+    ax.set_yticklabels(axis_labels, fontsize=tick_fs)
     ax.set_xlabel("Model")
     ax.set_ylabel("Model")
     ax.set_title("Pairwise agreement: fraction of test samples with identical predicted label")

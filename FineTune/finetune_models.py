@@ -1,25 +1,3 @@
-"""
-Fine-tune every model under SavedModelsFINAL on finetune_training_data.csv.
-
-- Training and Hugging Face evaluation both use the same CSV (as requested).
-- finetune_testing_data.csv is used only once at the end for reporting (no tuning on it).
-
-Alignment with SingleAgent (initial training)
----------------------------------------------
-- TF-IDF pipelines (`tf_idf_*.py`): subject and body concatenated with no separator,
-  i.e. ``subj.strip() + body.strip()`` — same as ``text_tfidf`` here.
-- Word2Vec pipelines (`word2vec_mlp.py`, `word2vec_rf.py`): subject and body joined with
-  ``" [SEP] "``, whitespace tokenisation ``str(text).lower().split()``, document vector
-  as the mean of in-vocabulary word vectors — same as ``text_w2v`` / ``document_vector``.
-- BERT (`bert_body.py`, `bert_subj.py`, `bert_body_and_subj.py`): body-only, subject-only,
-  or ``subj + " [SEP] " + body`` respectively; tokenizer/model from your saved checkpoint
-  (originally `bert-base-cased`). Default Trainer hyperparameters below match
-  `bert_body_and_subj.py` where applicable.
-
-Run from the project root so imports resolve, e.g.:
-    python FineTune/finetune_models.py
-"""
-
 from __future__ import annotations
 
 import json
@@ -437,12 +415,6 @@ def document_vector(w2v: Word2Vec, doc: str) -> np.ndarray:
 def _maybe_finetune_word2vec_embeddings(
     w2v: Word2Vec, sentences: List[List[str]], cfg: FinetuneConfig
 ) -> None:
-    """
-    Optional light continued training. By default this is not called (embeddings frozen).
-
-    When enabled: never adds new vocabulary unless ``w2v_allow_vocab_update`` is True.
-    Training uses a reduced start_alpha so a small finetune set does not dominate the weights.
-    """
     if not cfg.w2v_finetune_embeddings:
         return
     if cfg.w2v_allow_vocab_update:

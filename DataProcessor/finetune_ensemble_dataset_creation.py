@@ -12,6 +12,7 @@ def create_dataset():
     fine_tune_testing_df = pd.DataFrame()
     ensemble_training_df = pd.DataFrame()
     ensemble_testing_df = pd.DataFrame()
+    fun_test_df = pd.DataFrame()
 
     # Take 1000 emails from spearbot dataset and put into finetune dataset
     # Put the other 200 emails into fine tune test dataset
@@ -21,6 +22,7 @@ def create_dataset():
     # Put the other 50 into ensemble test dataset
     ensemble_training_df, ensemble_testing_df = train_test_split(fine_tune_testing_df, test_size=50,
                                                                    stratify=fine_tune_testing_df['label'], random_state=1)
+    meh_df, fun_test_df = train_test_split(fine_tune_testing_df, test_size=15, stratify=fine_tune_testing_df['label'], random_state=1)
 
     # Then using the old dataset
     # Add 112 into finetune dataset
@@ -46,7 +48,8 @@ def create_dataset():
     # Add 800 into ensemble dataset
     temp_train_df, temp_test_df = train_test_split(fine_tuned_spearbot_df, test_size=400,
                                                    stratify=fine_tuned_spearbot_df['label'], random_state=1)
-
+    meh_df, more_fun_test_df = train_test_split(fine_tuned_spearbot_df, test_size=10, stratify=fine_tuned_spearbot_df['label'], random_state=1)
+    fun_test_df = pd.concat([fun_test_df, more_fun_test_df], ignore_index=True)
     # Add 400 into ensemble test dataset
     ensemble_training_df = pd.concat([ensemble_training_df, temp_train_df], ignore_index=True)
     ensemble_testing_df = pd.concat([ensemble_testing_df, temp_test_df], ignore_index=True)
@@ -55,6 +58,7 @@ def create_dataset():
     fine_tune_testing_df.to_csv("Data/SpearBot/finetune_testing_data.csv", index=False)
     ensemble_training_df.to_csv("Data/SpearBot/ensemble_training_data.csv", index=False)
     ensemble_testing_df.to_csv("Data/SpearBot/ensemble_testing_data.csv", index=False)
+    fun_test_df.to_csv("Data/SpearBot/fun_test_data.csv", index=False)
 
 
 def check_datasets():

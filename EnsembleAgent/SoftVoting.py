@@ -1,17 +1,3 @@
-"""
-Discover models under SavedModels/ and FinetunedOutputs/, compute soft-voting probabilities
-on ensemble_training_data.csv, and greedily build an ensemble:
-
-1. Start with the single model with highest training F1.
-2. Repeatedly add the remaining model that yields the largest training F1 when averaged
-   (soft vote) with the current set.
-3. Stop when the best available relative F1 gain is below 1% (vs the current ensemble F1).
-4. Evaluate the final soft-voting ensemble on ensemble_testing_data.csv, print metrics, and
-   save a joblib artifact for reuse (see load_soft_voting_ensemble / predict_soft_voting_proba).
-
-Run from project root: python -m EnsembleAgent.SoftVoting
-"""
-
 from __future__ import annotations
 
 import gc

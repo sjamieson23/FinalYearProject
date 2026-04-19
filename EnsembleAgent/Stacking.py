@@ -1,21 +1,8 @@
-"""
-Stacked ensemble: base models produce class probabilities; a logistic regression
-meta-learner is fit on P(class=1) from each base model.
-
-Default base models (folder names), resolved under TopModels/ then SavedModels/:
-  BertBody_2_Epochs, BertSubj_3_Epochs, BertBodyAndSubj_3_Epochs,
-  Word2VecBodyAndSubjectMLP, TFIDFBodyAndSubjectDT, TFIDFBodyAndSubjectMLP
-
-Train on Data/ensemble_training_data.csv, evaluate on Data/ensemble_testing_data.csv,
-print metrics, save joblib for reuse (load_stacking_ensemble / predict_stacked_proba).
-
-Run from project root: python -m EnsembleAgent.Stacking
-"""
-
 from __future__ import annotations
 
 import glob
 import os
+import time
 from typing import Any
 
 import joblib
@@ -36,9 +23,9 @@ from SoftVoting import (
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TRAIN_CSV = os.path.join(SCRIPT_DIR, "Data", "ensemble_training_data.csv")
-TEST_CSV = os.path.join(SCRIPT_DIR, "Data", "ensemble_testing_data.csv")
-TOP_MODELS = os.path.join(SCRIPT_DIR, "TopModels")
-SAVED_MODELS = os.path.join(SCRIPT_DIR, "SavedModels")
+TEST_CSV = os.path.join(SCRIPT_DIR, "Data", "fun_test_data4.csv")
+TOP_MODELS = os.path.join(SCRIPT_DIR, "StackModels")
+SAVED_MODELS = os.path.join(SCRIPT_DIR, "StackModels")
 STACK_SAVE_DIR = os.path.join(SCRIPT_DIR, "SavedStackingEnsemble")
 STACK_JOBLIB_PATH = os.path.join(STACK_SAVE_DIR, "stacking_ensemble.joblib")
 STACK_METRICS_PATH = os.path.join(STACK_SAVE_DIR, "stacking_test_metrics.txt")
@@ -48,9 +35,9 @@ BASE_MODEL_FOLDERS = [
     "BertBody_2_Epochs",
     "BertSubj_3_Epochs",
     "BertBodyAndSubj_3_Epochs",
-    "Word2VecBodyAndSubjectMLP",
+    "Word2VecBodyAndSubjectMLP_Finetuned",
     "TFIDFBodyAndSubjectDT",
-    "TFIDFBodyAndSubjectMLP",
+    "TFIDFBodyAndSubjectMLP_Finetuned",
 ]
 
 
@@ -202,10 +189,13 @@ def main():
         test_df, subj_te, body_te = _prepare_email_df(test_df)
 
         print("\nBase model predict_proba (test)...")
+        startTime = time.time()
         test_probas = collect_base_probas(specs, test_df, subj_te, body_te, DEVICE, "test")
         X_meta_test = meta_features_from_probas(test_probas)
         test_preds = meta.predict(X_meta_test)
+        endTime = time.time()
         test_metrics = classification_metrics_dict(y_test, test_preds)
+        runtime = endTime - startTime
 
         print("\n--- Test metrics (stacked ensemble) ---")
         print(
@@ -215,6 +205,7 @@ def main():
             f"  f1:        {test_metrics['f1']:.4f}\n"
             f"  tp={int(test_metrics['tp'])}, fp={int(test_metrics['fp'])}, "
             f"tn={int(test_metrics['tn'])}, fn={int(test_metrics['fn'])}"
+            f"\n  Runtime: {runtime:.2f}s"
         )
     else:
         print(f"\nTest file not found ({TEST_CSV}); skipping test evaluation.")

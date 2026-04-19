@@ -1,12 +1,3 @@
-"""
-Ensemble selection: combine BertBodyAndSubj and BertBody.
-For each email, take the 'preferred' classification (same as both, or higher-confidence when they disagree).
-Compare F1 of the two single models vs the ensemble.
-
-Run from project root: python -m EnsembleAgent.Selecting
-Or from EnsembleAgent: python Selecting.py (uses paths relative to project root via __file__).
-"""
-
 import os
 
 import joblib

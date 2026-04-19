@@ -1,16 +1,3 @@
-"""
-Ensemble selection with a Logistic Regression meta-classifier:
-combine BertBodyAndSubj and BertBody.
-
-Instead of picking the prediction with higher confidence when the two
-models disagree, we train a Logistic Regression classifier on simple
-meta-features derived from both models' outputs and use that to produce
-the final prediction.
-
-Run from project root: python -m EnsembleAgent.SelectingLr
-Or from EnsembleAgent: python SelectingLr.py (uses paths relative to project root via __file__).
-"""
-
 import os
 
 import joblib
